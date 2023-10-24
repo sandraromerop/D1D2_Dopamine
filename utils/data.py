@@ -1,11 +1,10 @@
 #%%
-# from cmath import nan
-# from turtle import shape
-import numpy as np
 import os
+from tqdm import tqdm
 import glob
 import pickle
 import scipy.io as scio
+import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d as gsmooth
 import mat73
 #%%
@@ -461,7 +460,6 @@ class DataLoad:
         self.outcomePeriodFreeLate  =  np.int0(self.timesToIndices(self.outcomeWindowFreeLate, self.psthWindow  ))
         self.outcomePeriodLate      =  np.int0(self.timesToIndices(self.outcomeWindowLate, self.psthWindow ))
         self.baselinePeriod = np.int0(self.timesToIndices(self.baselineWindow, self.psthWindow))
-
         self.nTrialTypes         = len(self.interestingTrialTypes)
         
         self.computeSmoothingKernel()
@@ -518,10 +516,6 @@ class DataLoad:
         self.outcomeResponses_licks = np.asarray([[[np.nanmean(PSTH_licks[icell,itype,itrial,self.outcomePeriod]) for itrial  in range(PSTH_licks.shape[2])] for itype  in range(PSTH_licks.shape[1])] for icell in range(PSTH_licks.shape[0])] )
         self.traceResponses_licks = np.asarray([[[np.nanmean(PSTH_licks[icell,itype,itrial,self.tracePeriod]) for itrial  in range(PSTH_licks.shape[2])] for itype  in range(PSTH_licks.shape[1])] for icell in range(PSTH_licks.shape[0])] )
 
-        # self.cueResponses_licks = np.nanmean(PSTH_licks[:,:,:,self.cuePeriod], axis=3)
-        # self.outcomeResponses_licks = np.nanmean(PSTH_licks[:,:,:,self.outcomePeriod], axis=3)
-        # self.traceResponses_licks = np.nanmean(PSTH_licks[:,:,:,self.tracePeriod], axis=3)
-        
         return self.cueResponses_licks,self.outcomeResponses_licks,self.traceResponses_licks
 
     def compute_responses_re_baseline(self,PSTH):
@@ -531,13 +525,6 @@ class DataLoad:
         self.outcomeResponses = np.asarray([[[np.nanmean(self.PSTHs[icell,itype,itrial,self.outcomePeriod]) for itrial  in range(self.PSTHs.shape[2])] for itype  in range(self.PSTHs.shape[1])] for icell in range(self.PSTHs.shape[0])] )
         self.traceResponses = np.asarray([[[np.nanmean(self.PSTHs[icell,itype,itrial,self.tracePeriod]) for itrial  in range(self.PSTHs.shape[2])] for itype  in range(self.PSTHs.shape[1])] for icell in range(self.PSTHs.shape[0])] )
 
-
-        # self.baselines = np.nanmean(PSTH[:,:,:,self.baselinePeriod] ,axis=(3,2,1))
-        # self.PSTHs = PSTH - self.baselines[:,np.newaxis,np.newaxis,np.newaxis]
-        # self.cueResponses = np.nanmean(self.PSTHs[:,:,:,self.cuePeriod], axis=3)
-        # self.outcomeResponses = np.nanmean(self.PSTHs[:,:,:,self.outcomePeriod], axis=3)
-        # self.traceResponses = np.nanmean(self.PSTHs[:,:,:,self.tracePeriod], axis=3)
-        
         return self.baselines,self.cueResponses,self.outcomeResponses,self.traceResponses, self.PSTHs
 
     def compute_mu_responses_per_cue(self, responses,idU = None):
@@ -575,30 +562,29 @@ class DataLoad:
         PSTC_           = np.nan*np.ones((nCells,1, self.maxTrialsPerType*3, self.psthLength))  #  peri-stimulus time counts, including all cells
         PSTC            = np.nan*np.ones((nCells, self.nTrialTypes, self.maxTrialsPerType, self.psthLength) ) #  peri-stimulus time counts, including all cells
         spikeRaster     = np.nan*np.ones((nCells, self.nTrialTypes, self.maxTrialsPerType, self.psthLength))
-        for iCell in range(nCells):
-            print('Cell '+ str(iCell)+ ' of '+ str(nCells))
-            unit = scio.loadmat(file_list[iCell],squeeze_me=True,struct_as_record=False)
+        for iCell in tqdm(range(nCells),'Cell Number'):
+            with open(file_list[iCell], 'rb') as handle:
+                unit = pickle.load(handle)
             iTrialOfType = np.zeros((self.nTrialTypes,))   # keep track (separately per cell) of how many trials of each type have happened
-            nTrials = len(unit['S'].events.odorOn)
-            trialTypes = unit['S'].TrialTypes
+            nTrials = len(unit['data']['events']['odorOn'])
+            trialTypes = unit['data']['TrialTypes']
             
-
             for iTrial in  range(nTrials):
                 trialTypeId  = trialTypes[iTrial]
                 if trialTypes[iTrial]!=10 and trialTypes[iTrial]!=9 :
-                    stTime = unit['S'].events.odorOn[iTrial];  # an odor-on event
+                    stTime = unit['data']['events']['odorOn'][iTrial];  # an odor-on event
                 else:
-                    stTime = np.asarray([unit['S'].events.rewardOn[iTrial], unit['S'].events.airpuffOn[iTrial]])   # an odor-on event
+                    stTime = np.asarray([unit['data']['events']['rewardOn'][iTrial], unit['data']['events']['airpuffOn'][iTrial]])   # an odor-on event
                     stTime = stTime[np.logical_not(np.isnan(stTime))]
                     stTime = np.min(stTime)
                 # % Take a temporal window around the odor onset time
                 # % Find the spikes that happened in that window, and map their times to PSTH indices
                 if response_type == 'spikes':
-                    windowIndices = np.logical_and(unit['S'].responses.spike >= stTime + self.psthWindow[0] , unit['S'].responses.spike <= stTime + self.psthWindow[1])
-                    spikeTimes = unit['S'].responses.spike[windowIndices]
+                    windowIndices = np.logical_and(unit['data']['responses']['spike'] >= stTime + self.psthWindow[0] , unit['data']['responses']['spike'] <= stTime + self.psthWindow[1])
+                    spikeTimes = unit['data']['responses']['spike'][windowIndices]
                 else:
-                    windowIndices = np.logical_and(unit['S'].responses.lick >= stTime + self.psthWindow[0] , unit['S'].responses.lick <= stTime + self.psthWindow[1])
-                    spikeTimes = unit['S'].responses.lick[windowIndices]
+                    windowIndices = np.logical_and(unit['data']['responses']['lick'] >= stTime + self.psthWindow[0] , unit['data']['responses']['lick'] <= stTime + self.psthWindow[1])
+                    spikeTimes = unit['data']['responses']['lick'][windowIndices]
                 spikePsthIndices = np.round( np.divide(spikeTimes - stTime, self.psthResolution) ) - self.psthWindow[0] / self.psthResolution
                 spikePsthIndices = [np.int0(ii) for ii in spikePsthIndices]
                 trialTypeId  = trialTypes[iTrial]

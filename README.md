@@ -2,7 +2,7 @@
 
 This code reproduces the analysis and simulations for the main figures of the manuscript **'Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model'** by  Romero Pinto &  Uchida, 2023
 
-### Notebooks to reproduce the figures:
+## Notebooks to reproduce the figures:
 
 - **`data_analysis_LHb_DA`**
   - Reproduces the analysis performed on the dopamine neurons from the Habenula lesion dataset (Tian & Uchida, 2015)
@@ -24,7 +24,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Performs the plots for output variables of the TD learnig simulations 
   - Figures from manuscript: 6 k-l
 
-### Auxiliary functions: 
+## Auxiliary functions: 
 
 **`rl`:**
 - `agent.py`: TD learning object for performing RL simulations (deployed in `rl_simulations_from_data` )
@@ -39,3 +39,31 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - `plots.py`: miscellaneous functions for plotting
 
 
+## Data format: 
+
+**`unit['data']`: Habenula lesion dataset**
+
+- `unit['data']['TrialTypes']` : Index of trial type per trial  (Size: N trials)
+- `unit['data']['TrialNames']` : Name of trial type per index (Size: N trialypes )
+
+- `unit['data']['responses']`: **Responses from the habenula lesion dataset**
+
+  - `unit['data']['responses']['lick']` : Timestamp of licks (Size: N licks per session)
+  - `unit['data']['responses']['spike']`: Timestamp of spikes (Size: N spikes per session)
+
+- `unit['data']['events']`: **Events in session from the habenula lesion dataset**
+
+  - `unit['data']['events']['odorOn']`: Timestamp of odor onset per trial (Size: N trials)
+  - `unit['data']['events']['odorOff']`: Timestamp of odor offset per trial (Size: N trials)
+  - `unit['data']['events']['airpuffOn']`: Timestamp of airpuff onset per trial (Size: N trials)
+  - `unit['data']['events']['rewardOn']`: Timestamp of reward onset per trial (Size: N trials)
+  - `unit['data']['events']['trialStart']`: Timestamp of trialstart per trial (Size: N trials)
+  - `unit['data']['events']['odorID']`: Index of odor per trial (Size:  N trials)
+
+**`unit['simulation_results']`: Simulation results from the biophysical simulations based on data**
+
+  - `unit['simulation_results']['da_conc']` : DA concentrarion per trial (Size: Timestamps per trial x N trials)
+  - `unit['simulation_results']['d1_occ']` : D1 occupancy per trial (Size: Timestamps per trial x N trials)
+  - `unit['simulation_results']['d2_occ']` : D2 occupancy per trial (Size: Timestamps per trial x N trials)
+  - `unit['simulation_results']['input_fr']` : Input firing rate per trial (Size: Timestamps per trial x N trials)
+  - `unit['simulation_results']['time_ax']` : time axis per trial (Size: Timestamps per trial x N trials)
