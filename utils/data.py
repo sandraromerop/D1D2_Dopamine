@@ -7,7 +7,39 @@ import scipy.io as scio
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d as gsmooth
 import mat73
+import osfclient
+from osfclient.utils import makedirs, checksum
+
 #%%
+def clone_py(args, data_folder=None):
+    """Copy  files from  storages of a project. 
+    Function allows to specify the subfolder in the project to download
+    """
+    osf = osfclient.OSF()
+    project = osf.project(args['project'])
+    output_dir = args['output']
+
+    with tqdm(unit='files') as pbar:
+        for store in project.storages:
+            prefix = os.path.join(output_dir, store.name)
+            for file_ in store.files:
+                path = file_.path
+                if path.startswith('/'):
+                    path = path[1:]
+
+                sub_type = path.split('/')[0]
+                if  sub_type==data_folder or data_folder is None:
+                    path = os.path.join(prefix, path)
+                    if os.path.exists(path) and args.update:
+                        if checksum(path) == file_.hashes.get('md5'):
+                            continue
+                    directory, _ = os.path.split(path)
+                    makedirs(directory, exist_ok=True)
+
+                    with open(path, "wb") as f:
+                        file_.write_to(f)
+
+                pbar.update()
 
 def timesToIndices(times, startEnd, resolution):
     # given a time window [startEnd(1) startEnd(2)], sampled at "resolution"
@@ -342,7 +374,7 @@ def get_mice_dates_list(path_data,suffs):
     for i_suff in np.arange(len(suffs)):
         suffix = suffs[i_suff]
         data_path = os.path.join(path_data,suffix)
-        ff = glob.glob(data_path + '/*formatted.mat')
+        ff = glob.glob(data_path + "/*.pickle")
         dates_,mice_ = [],[]
         for iff in np.arange(len(ff)):
             f_name = (ff[iff].split('/')[-1])
@@ -362,7 +394,7 @@ def get_mice_dates_list(path_data,suffs):
         mice_v.append(mice_[id_unique])
         mice_all.append(mice_)
         dates_all.append(dates_)
-    
+
     return mice_v,mice_all,dates_all, id_unique_,u_dates_
 
 def load_lick_raster(licks,odor_on,trial_types,tr_win,psth_resolution,psth_length):
