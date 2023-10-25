@@ -373,7 +373,7 @@ def get_mice_dates_list(path_data,suffs):
     dates_all = []
     for i_suff in np.arange(len(suffs)):
         suffix = suffs[i_suff]
-        data_path = os.path.join(path_data,suffix)
+        data_path = os.path.join(path_data,'raw_data',suffix)
         ff = glob.glob(data_path + "/*.pickle")
         dates_,mice_ = [],[]
         for iff in np.arange(len(ff)):
