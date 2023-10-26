@@ -45,6 +45,8 @@ This code reproduces the analysis and simulations for the main figures of the ma
 ## References
 
 **(1)** Romero Pinto, S., & Uchida, N. (2023). Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model (In preparation)
+
+
 **(2)** Tian, J., & Uchida, N. (2015). Habenula Lesions Reveal that Multiple Mechanisms Underlie Dopamine Prediction Errors. Neuron, 87(6), 1304–1316. https://doi.org/10.1016/j.neuron.2015.08.028
 
 
