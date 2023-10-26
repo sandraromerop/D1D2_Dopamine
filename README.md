@@ -8,6 +8,9 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Downloads the data from the  [**Open Science Framework (OSF)**](https://osf.io/) repository. The repository can be viewed [here](https://osf.io/cr5mv/?view_only=bd13a2d2de1947699b56ce70610b0e9b).
   - Also includes details on the data format.
 
+- **`tonic_da_model`**
+  - Performs the basic predictions of the tonic Dopamine model proposed in the manuscript
+
 - **`data_analysis_LHb_DA`**
   - Reproduces the analysis performed on the dopamine neurons from the Habenula lesion dataset (Tian & Uchida, 2015)
   - Figures from manuscript:  4b-e, 5c-d, 6b
