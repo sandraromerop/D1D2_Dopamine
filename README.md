@@ -28,6 +28,12 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Performs the plots for output variables of the TD learnig simulations 
   - Figures from manuscript: 6 k-l
 
+# TODOS:
+- Code to produce receptor sensitivities curves
+- Sample code to produce biophysical simulations 
+- Code to produce drug manipulations
+- 
+
 ## Auxiliary functions: 
 
 **`rl`:**
@@ -41,6 +47,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - `drl.py`: Function to derive distributional RL parameters from data (deployed in `data_analysis_LHb_DA` and `drl_from_biophysical_simulations`)
 - `stats_perform.py`: Functions to perform statistical tests for normality and difference in distributions (deployed in all noteboks)
 - `plots.py`: miscellaneous functions for plotting
+- `path.py`: path configuration for loading and saving data and analysis
 
 ## References
 
