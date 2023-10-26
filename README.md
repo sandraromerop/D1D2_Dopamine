@@ -19,6 +19,10 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Performs fits to the behavioral readout (anticipatory licking) from the Habenula lesion dataset  of reinforcement learning models
   - Figures from manuscript: 4c
   
+- **`biophysical_simulations_from_data`**
+  - Performs the biophysical simulations of dopamine release and receptor occupancy, having as inputs the dopamine firing rates recorded in Tian & Uchida, 2015
+  - These simulations are based on the  [codebase](https://github.com/jakobdreyer/Dopamine-Simulation-Tools) released by Jakob Dreyer.
+
 - **`drl_from_biophysical_simulations`**
   - Reproduces the analysis performed on the output variables from the biophysical simulations
   - Figures from manuscript: 6c, 6e-f, 6h-i
@@ -32,7 +36,6 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Figures from manuscript: 6 k-l
 
 # TODOS:
-- Sample code to produce biophysical simulations 
 - Code to produce drug manipulations
 
 
@@ -42,7 +45,11 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - `agent.py`: TD learning object for performing RL simulations (deployed in `rl_simulations_from_data` )
 - `tasks.py`: Task object for the Pavlovian task used in Tian & Uchida 2015 (deployed in `rl_simulations_from_data` )
 - `plots.py`: Functions for plotting the outputs from the RL simulations (deployed in `plot_rl_simulations_from_data` )
-  
+- `models.py`: Contains a class and associated functions for generating the predictions of Model 1 (deployed in `tonic_da_model`)
+
+**`biophysical_model`:**
+- `dopamine_toolbox.py`: Contains the classes and functions needed to run the biophysical simulations of dopamine release and receptor occupancy. Functions are taken from the  [codebase](https://github.com/jakobdreyer/Dopamine-Simulation-Tools) released by Jakob Dreyer.
+
 **`utils`:**
 - `data.py`: Functions and objects for loading and reformatting data  (deployed in `data_analysis_LHb_DA` )
 - `model_fitting`:  Functions for fitting RL models to the behavioral data from Tian & Uchida 2015 ( deployed in `fit_rl_models_LHb_DA`). The functions are an extension of the ones used in   Babayan, Gershman & Uchida, 2017
