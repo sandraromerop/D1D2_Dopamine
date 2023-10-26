@@ -32,10 +32,9 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Figures from manuscript: 6 k-l
 
 # TODOS:
-- Code to produce receptor sensitivities curves
 - Sample code to produce biophysical simulations 
 - Code to produce drug manipulations
-- 
+
 
 ## Auxiliary functions: 
 
