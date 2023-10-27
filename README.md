@@ -7,6 +7,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - **`download_data`**
   - Downloads the data from the  [**Open Science Framework (OSF)**](https://osf.io/) repository. The repository can be viewed [here](https://osf.io/cr5mv/?view_only=bd13a2d2de1947699b56ce70610b0e9b).
   - Also includes details on the data format.
+  - *No plots*
 
 - **`tonic_da_model`**
   - Performs the basic predictions of the tonic Dopamine model proposed in the manuscript
@@ -22,6 +23,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - **`biophysical_simulations_from_data`**
   - Performs the biophysical simulations of dopamine release and receptor occupancy, having as inputs the dopamine firing rates recorded in Tian & Uchida, 2015
   - These simulations are based on the  [codebase](https://github.com/jakobdreyer/Dopamine-Simulation-Tools) released by Jakob Dreyer.
+  - *No plots*
 
 - **`drl_from_biophysical_simulations`**
   - Reproduces the analysis performed on the output variables from the biophysical simulations
@@ -35,9 +37,16 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Performs the plots for output variables of the TD learnig simulations 
   - Figures from manuscript: 6 k-l
 
+- **`drugs_from_biophysical_simulations`**
+  - Plots the results from the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
+  - The simulations were done to reproduce the effects of bromocriptine on reversal learning in the study: **Cools, R., Frank M.J., Gibbs S., Miyakawa A., Jagust W. & D'Esposito M.  Striatal dopamine predicts outcome-specific reversal learning and its sensitivity to dopaminergic drug administration. J. Neurosci. 29, 1538–1543 (2009)**
+
+
 # TODOS:
 - Code to produce drug manipulations
-
+- Check which extended data figures are missing
+- Numerate the notebooks to go in order 
+- How to share dependencies + install environment in external compuer 
 
 ## Auxiliary functions: 
 

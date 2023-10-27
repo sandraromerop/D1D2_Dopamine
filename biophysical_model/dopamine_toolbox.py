@@ -16,7 +16,7 @@ Most important classes and functions are
 
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d as gsmooth
-
+from utils.model_fitting import sigmoid_fun
 
 class receptor:
     """`
@@ -1162,33 +1162,17 @@ def initialize_variables_dict(max_samp,n_trials):
 
     return simulation_results
 
-
-    # synch = np.zeros((n_trials,))
-    # mean_input_fr = np.zeros((n_trials,))
-    # time_ax = np.zeros((max_samp,n_trials))
-    # input_fr = np.zeros((max_samp,n_trials))
-    # da_conc = np.zeros((max_samp,n_trials))
-    # d1_occ = np.zeros((max_samp,n_trials))
-    # d2_occ = np.zeros((max_samp,n_trials))
-    # d1_ac5 = np.zeros((max_samp,n_trials))
-    # d2_ac5 = np.zeros((max_samp,n_trials))
-    # d1_camp = np.zeros((max_samp,n_trials))
-    # d2_camp = np.zeros((max_samp,n_trials))
-    # dac5 = np.zeros((2,n_trials))
-    # analytical_meanDA = np.zeros((n_trials,))
-    # analytical_stdDA = np.zeros((n_trials,))
-    # meanDA = np.zeros((n_trials,))
-    # d1_meanAC5 = np.zeros((n_trials,))
-    # d2_meanAC5 = np.zeros((n_trials,))
-    # d1_meancAMP = np.zeros((n_trials,))
-    # d2_meancAMP = np.zeros((n_trials,))
-    # d1_tonic_meanAC5 = np.zeros((n_trials,))
-    # d2_tonic_meanAC5 = np.zeros((n_trials,))
-    # d1_tonic_meancAMP = np.zeros((n_trials,))
-    # d2_tonic_meancAMP = np.zeros((n_trials,))
-    # i_phasic = np.zeros((2,n_trials))
-
-    # return synch, mean_input_fr,input_fr,time_ax,da_conc,d1_occ,d2_occ,d1_ac5,d2_ac5,d1_camp,d2_camp,\
-    #         dac5,analytical_meanDA,analytical_stdDA,meanDA,d1_meanAC5,d2_meanAC5,d1_meancAMP,d2_meancAMP,d1_tonic_meanAC5,d2_tonic_meanAC5,\
-    #         d1_tonic_meancAMP,d2_tonic_meancAMP,i_phasic
-            
+def initialize_config_drugs():
+    ec50_d1=1000
+    ec50_d2=10
+    drug_concv = 10**(np.linspace(-1.5,2,10)) 
+    efficacies = np.linspace(.1,.9,6)
+    ndrug = len(drug_concv)
+    neffs = len(efficacies)
+    id_bins_base = np.arange(1000,2000)
+    da_sigmoid = np.linspace(-1,4.5,20)
+    rec_sigmoid = sigmoid_fun(10**da_sigmoid,ec50_d2)
+    log_delta = np.log10(1/3)
+    da_eta = np.linspace(1,2.5,20)
+    
+    return drug_concv, efficacies, ndrug, neffs, id_bins_base,da_sigmoid,rec_sigmoid,log_delta,ec50_d1,ec50_d2,da_eta

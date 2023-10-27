@@ -2,6 +2,55 @@ import numpy as np
 import scipy as sci
 import scipy.optimize as scio
 
+
+def sigmoid(x, L ,x0, k, b):
+    
+    """
+    Sigmoid curve for fitting:
+    L:  responsible for scaling the output range from [0,1] to [0,L]
+    x0: is the point in the middle of the Sigmoid, 
+        i.e. the point where Sigmoid should originally output the value 1/2 
+    k:  responsible for scaling the input, which remains in (-inf,inf)
+    b:  adds bias to the output and changes its range from [0,L] to [b,L+b]
+    """
+    y = L / (1 + np.exp(-k*(x-x0))) + b
+
+    return (y)
+
+def sigmoid_fun(x,ec50):
+    y = x/(x+ec50)
+
+    return y
+
+def slope_log(center,log_delta,popt,type_sigm='full'):
+    if type_sigm =='full':
+        x1 = center
+        x2 = center+log_delta
+        yc = sigmoid([x1,x2],*popt)
+        sign_ = np.sign(yc[-1]-yc[0])
+        slope_log = sign_*(yc[-1]-yc[0])/((10**(x2-x1))**(sign_))
+    else:
+        x1 = center
+        x2 = center*log_delta
+        y = sigmoid_fun(np.asarray([x1,x2]),popt)
+        sign_ = np.sign(y[-1]-y[0])
+        slope_log = sign_*(y[-1]-y[0])/((x2/x1)**(sign_))
+
+    return slope_log
+
+def fit_sigmoid(xdata,ydata,xfit,log_xscale=True):
+    # id_keep =~( np.isnan(mu_da)+np.isnan(mu_occ)+np.isnan(mu_act))
+    # mu_da,mu_occ,mu_act = mu_da[id_keep],mu_occ[id_keep],mu_act[id_keep]
+    # ydata = mu_occ
+    id_keep =~( np.isnan(xdata)+np.isnan(ydata))
+    xdata,ydata= xdata[id_keep],ydata[id_keep]
+    if log_xscale:
+        xdata = np.log10(xdata)    
+    p0 = [max(ydata), np.median(xdata),1,min(ydata)] # this is an mandatory initial guess
+    popt, pcov = scio.curve_fit(sigmoid, xdata, ydata,p0, method='trf',bounds=(0,np.inf))
+    yfit = sigmoid(xfit, *popt)
+
+    return popt, pcov,yfit
     
 def log_probability_rflr(parameters, sessions):
     
