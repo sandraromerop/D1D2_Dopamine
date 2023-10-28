@@ -70,7 +70,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - `plots.py`: miscellaneous functions for plotting
 - `path.py`: path configuration for loading and saving data and analysis
 
-## Dependencies & enviro xnments
+## Dependencies & environment
 
 To install the dependencies to run this code one can  take two routes:
 
@@ -87,7 +87,7 @@ To install the dependencies to run this code one can  take two routes:
   conda activate Tonic_DA
   ```
 
-  
+
 ## References
 
 **(1)** Romero Pinto, S., & Uchida, N. (2023). Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model (In preparation)
