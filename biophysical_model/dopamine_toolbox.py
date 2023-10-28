@@ -13,8 +13,8 @@ Most important classes and functions are
 """
 
 
-
 import numpy as np
+from tqdm import tqdm
 from scipy.ndimage.filters import gaussian_filter1d as gsmooth
 from utils.model_fitting import sigmoid_fun
 
@@ -884,6 +884,355 @@ class PostSynapticNeuron:
         
         return retstr
 
+class DrugReceptorInteraction:
+    """
+    Representing interaction between a drug and a receptor. 
+    
+    :param name: Name of drug
+    :type name: str
+    :param target: Name of receptor target for this interaction
+    :type target: str
+    :param k_on: onrate of drug to *target* in s\:sup:`-1`
+    :type k_on: float
+    :param k_off: off-rate of drug to *target* in s\ :sup:`-1`
+    :type k_off: float
+    :param efficacy: Efficacy of drug to ativate *target*. See :class:`receptor` for more information. 
+    :type efficacy: 0<= float <= 1
+    
+ 
+    
+    """
+    def __init__(self, name, target, k_on, k_off, efficacy):
+        self.name = name;
+        self.target = target;
+        self.k_on = k_on;
+        self.k_off = k_off;
+        self.efficacy = efficacy;
+        
+    def __str__(self):
+        class_string = \
+        'Drug-receptor interaction. \n'\
+        'Name:\t\t' + self.name + '\n' +\
+        'Efficacy:\t' + str(self.efficacy) + '\n' +\
+        'Onrate:\t\t' + str(self.k_on) + ' (s nM)^{-1}' + '\n' \
+        'Offrate:\t' + str(self.k_off) + ' s^{-1}' + '\n'
+        
+        return class_string
+
+class SpecificDrugs:
+    def __init__(self, name = 'Default Agonist'):
+        
+        if name == 'Default Agonist':
+            self.target = 'D2R'
+            self.k_on = 0.01
+            self.k_off = 1.0
+            self.efficacy = 1.0      
+        elif name == 'bromocriptine_dan':
+            emax_bromo_d2s = 41
+            bromo_pkb_d2s = 8.35
+            # bromo_kb_d2s = 10**(-bromo_pkb_d2s) # 4.5nM
+            bromo_kb_d2s = 4.8*10**(-9)
+            bromo_koff_d2s = .1
+            bromo_kon_d2s = bromo_koff_d2s/(10**9*bromo_kb_d2s)
+            
+            self.target = 'D2R'
+            self.k_on = bromo_kon_d2s
+            self.k_off = bromo_koff_d2s
+            self.efficacy = emax_bromo_d2s/100
+        
+        elif name == 'bromocriptine_spn':
+            emax_bromo_d2l = 28
+            bromo_pkb_d2l = 8.41
+            # bromo_kb_d2l = 10**(-bromo_pkb_d2l) # 4 nM 
+            bromo_kb_d2l = 2.5*10**(-9)
+            bromo_koff_d2l = .1
+            bromo_kon_d2l = bromo_koff_d2l/(10**9*bromo_kb_d2l)
+
+            self.target = 'D2R'
+            
+            self.k_on = bromo_kon_d2l
+            self.k_off = bromo_koff_d2l
+            self.efficacy = emax_bromo_d2l/100
+        
+        elif name == 'pramiprexole_dan':
+            emax_prami_d2s = 90
+            # prami_pkb_d2s = 6.37
+            # prami_kb_d2s = 10**(-prami_pkb_d2s)
+            prami_kb_d2s = 3.3*10**(-9)
+            prami_koff_d2s = .1
+            prami_kon_d2s = prami_koff_d2s/(10**9*prami_kb_d2s)
+
+            self.target = 'D2R'
+            self.k_on = prami_kon_d2s
+            self.k_off = prami_koff_d2s
+            self.efficacy = emax_prami_d2s/100
+        
+        elif name == 'pramiprexole_spn':
+            emax_prami_d2l = 90
+            # prami_pkb_d2l = 6.47
+            # prami_kb_d2l = 10**(-prami_pkb_d2l)
+            prami_kb_d2l = 3.9*10**(-9)
+            prami_koff_d2l = .1
+            prami_kon_d2l = prami_koff_d2l/(10**9*prami_kb_d2l)
+
+            self.target = 'D2R'
+            self.k_on = prami_kon_d2l
+            self.k_off = prami_koff_d2l
+            self.efficacy = emax_prami_d2l/100
+
+        elif name == 'A_77636_spn':
+            emax_a77  = 100
+            # prami_pkb_d2l = 6.47
+            pECs0 = 8.97 
+            a77_kb = 10**(-pECs0) 
+            # a77_kb = 1.1*10**(-9)
+            a77_koff  = .1
+            a77_kon  = a77_koff/(10**9*a77_kb)
+            self.target = 'D1R'
+            self.k_on = a77_kon
+            self.k_off = a77_koff
+            self.efficacy = emax_a77/100
+        
+class Drug(DrugReceptorInteraction):
+    """
+    Class that is used to simulate presence of other ligands. Default has only one type of receptor to interact with. 
+    See below in case you want to simulate a drug with several interactions. 
+    
+    Examples::
+        
+       >>#create drug instance with default on and off rates:
+       >>mydrug = Drug('secret DA agonist', 'DA-D2', efficacy = 1)
+        
+    """
+    
+    def __init__(self, name = 'Default Agonist', target = 'D2R', k_on = 0.01, k_off = 1.0, efficacy = 1.0):
+        DrugReceptorInteraction.__init__(self, name, target, k_on, k_off, efficacy)
+        # print("Creating Drug-receptor class. More receptor interactions can be added manually! \nUse <name>.<target> = DrugReceptorInteraction(\'name.tagret\', target, kon, koff, efficacy)")
+    
+    def Concentration(self, t,  dose = 1, t_infusion = 0, k12 = 0.3/60, k21 = 0.0033, k_elimination =0.0078):
+        """
+        Calculates drug concentration in brain using two-compartment PK. Default values are for cocaine PK as estimated 
+        in `Pan, Menacherry, Justice; J Neurochem, 1991 <https://doi.org/10.1111/j.1471-4159.1991.tb11425.x>`_. 
+        But here the variaables are transformed from minues to seconds. 
+        
+        :param t: timepoint to calculate drug concentration. Can be scalar or array. If *t< t_infusion* the concentration will be 0. 
+        :type t: scalar or array
+        :param dose: Dose multiplier. 
+        :type dose: float
+        :param t_infusion: Time of infusion. Default *t_infusion* = 0. 
+        :type t_infusion: float
+        :param k12: rate constant in s\ :sup:`-1` for passage from bloodstream into brain (compartment 2)
+        :type k12: float
+        :param k21: rate constant in s\ :sup:`-1` for passage from brain to bloodstream (compartment 1)
+        :type k21: float
+        :param k_elimination: rate constant in\ :sup:`-1` for drug elimination from bloodstream
+        :type k_elimination: float
+        :return: Drug concentration at time t. numpy array of same size as input parameter *t*. If *t< t_infusion* the concentration will be 0. 
+        
+        
+        .. figure:: Pan_1991_Fig1.jpg
+           :scale: 50 %
+           :alt: Pan et al, 1991, Figure 1. 
+           :align: center
+
+           Figure 1 from `Pan et al, J Neurochem, 1991 <https://doi.org/10.1111/j.1471-4159.1991.tb11425.x>`_ showing compartments. The first compartment 'BODY CAVITY' is not used. 
+        
+        .. Note:: If *t* < *t_infusion* the concentraion is 0. If *t* is an array of times, the output concentration for *t* < *t_infusion* are 0. 
+        """
+
+        sumk = k12+k21+k_elimination
+        D = np.sqrt(sumk**2 - 4*k21*k_elimination);
+        a = 0.5*(sumk + D);
+        b = 0.5*(sumk - D);
+        
+        T = np.array(t-t_infusion)
+        Tdrug = T[T>0]
+ 
+        C = dose*k12/(a-b)*( np.exp(-b*(Tdrug) ) - np.exp(-a*(Tdrug)) );
+        pre_padding = np.zeros(T.size - Tdrug.size)
+        
+        c2 = np.concatenate( (pre_padding, C) )
+
+        return c2
+ 
+class DrugSimulations():
+    def __init__(self, drug = 'bromocriptine',efficacies = np.linspace(.1,.9,6),delta_fr=None,drug_concentrations=10**(np.linspace(-1.5,2,10)),n_steps=None ,dt=None):
+
+        self.drug = drug # 'bromocriptine' # 'bromocriptine' # pramiprexole A_77636
+        self.efficacies = efficacies
+        self.drug_concentrations = drug_concentrations
+        self.dt = dt
+        self.delta_fr = delta_fr
+        self.n_eff = len(efficacies)
+        self.n_conc = len(drug_concentrations)
+        self.n_DA = len(delta_fr)
+        self.n_steps = n_steps
+
+    def initialize_drug_classes(self,effic_d1=None,effic_d2s=None,effic_d2l=None):
+    
+        if self.drug =='bromocriptine':
+            drug = SpecificDrugs(name='bromocriptine_dan')
+            drug_d2s = Drug( name = 'bromocriptine',
+                            target = drug.target, k_on = drug.k_on, 
+                            k_off = drug.k_off, efficacy = effic_d2s)
+            drug= SpecificDrugs(name='bromocriptine_spn')
+            drug_d2l = Drug( name = 'bromocriptine',
+                            target = drug.target, k_on = drug.k_on, 
+                            k_off = drug.k_off, efficacy = effic_d2l)
+            drug_type = 'D2_agonist'
+            drug_d1 = None
+        elif self.drug =='pramiprexole':
+            drug = SpecificDrugs(name='pramiprexole_dan')
+            drug_d2s = Drug( name = 'pramiprexole',
+                            target = drug.target, k_on = drug.k_on, 
+                            k_off = drug.k_off, efficacy =effic_d2s)
+            drug= SpecificDrugs(name='pramiprexole_spn')
+            drug_d2l = Drug( name = 'pramiprexole',
+                            target = drug.target, k_on = drug.k_on, 
+                            k_off = drug.k_off, efficacy = effic_d2l)
+            drug_type = 'D2_agonist'
+            drug_d1 = None
+        elif self.drug =='A_77636':
+            drug= SpecificDrugs(name='A_77636_spn')
+            drug_d1 = Drug( name = 'A_77636',
+                            target = drug.target, k_on = drug.k_on, 
+                            k_off =drug.k_off, efficacy = effic_d1)
+            drug_type = 'D1_agonist'
+            drug_d2s = None
+            drug_d2l = None
+
+        self.drug_d2s = drug_d2s
+        self.drug_d2l = drug_d2l
+        self.drug_d1 = drug_d1
+        self.drug_type = drug_type
+
+        return drug, drug_d2s,drug_d2l,drug_d1,drug_type
+        
+
+    def initialize_simulation_classes(self):
+        if self.drug =='bromocriptine' or self.drug =='pramiprexole':
+            dan = DA('VTA', self.drug_d2s)
+            d1n = PostSynapticNeuron('d1')
+            d2n = PostSynapticNeuron('d2',self.drug_d2l)
+        elif self.drug =='A_77636':
+            dan = DA('VTA')
+            d1n = PostSynapticNeuron('d1',self.drug_d1)
+            d2n = PostSynapticNeuron('d2')
+
+        self.dan = dan
+        self.d1n = d1n
+        self.d2n = d2n
+
+        return dan, d1n, d2n
+    
+    def run_simulations(self,fr_mats):
+        drug_concv = self.drug_concentrations
+        efficacies = self.efficacies
+        nsims_drug = self.n_conc
+        nsims_da  = self.n_DA
+        for ida in range(nsims_da):
+            fr_trial = fr_mats[ida,:]   
+            for idr in tqdm(range(nsims_drug),'DrugConcentration'):
+                drug_conc = drug_concv[idr]
+                for ide_d2l,effic_d2l in zip(range(len(efficacies)),efficacies):
+                    for ide_d2s,effic_d2s in zip(range(len(efficacies)),efficacies):
+                        self.initialize_drug_classes(effic_d2s=effic_d2s,effic_d2l=effic_d2l)
+                        self.initialize_simulation_classes()
+                        self.initialize_results_dict()
+                        self.run_forward(drug_conc,fr_trial,ida,idr,ide_d2l,ide_d2s)
+
+        self.res['d2l_occ'][self.res['d2l_occ']>1] = np.nan
+        self.res['d2s_act'][self.res['d2s_act']>1] = np.nan
+        self.res['d1_act'][self.res['d1_act']>1] = np.nan
+        self.res['d2l_act'][self.res['d2l_act']>1] = np.nan
+        self.res['d2l_occ'][self.res['d2l_occ']<0] = np.nan
+        self.res['d2s_act'][self.res['d2s_act']<0] = np.nan
+        self.res['d1_act'][self.res['d1_act']<0] = np.nan
+        self.res['d2l_act'][self.res['d2l_act']<0] = np.nan
+
+    def run_forward(self,drug_conc,fr_trial,ida,idr,ide_d2l,ide_d2s):
+        n_steps = self.n_steps
+        for k in range(n_steps):
+            self.single_update(drug_conc,fr_trial,k)
+            if  self.drug_type == 'D2_agonist' :
+                self.res['d1_occ'][idr,ida,ide_d2l,ide_d2s,k] = self.d1n.DA_receptor.occupancy[0]
+                self.res['d2s_occ'][idr,ida,ide_d2l,ide_d2s,k,:] =  self.dan.D2term.occupancy
+                self.res['d2l_occ'][idr,ida,ide_d2l,ide_d2s,k,:] = self.d2n.DA_receptor.occupancy   
+            elif self.drug_type == 'D1_agonist':
+                self.res['d1_occ'][idr,ida,ide_d2l,ide_d2s,k,:] = self.d1n.DA_receptor.occupancy
+                self.res['d2s_occ'][idr,ida,ide_d2l,ide_d2s,k] =  self.dan.D2term.occupancy[0]
+                self.res['d2l_occ'][idr,ida,ide_d2l,ide_d2s,k] = self.d2n.DA_receptor.occupancy[0]
+                
+            self.res['da'][idr,ida,ide_d2l,ide_d2s,k] = self.dan.Conc_DA_term
+            self.res['d2s_act'][idr,ida,ide_d2l,ide_d2s,k] = self.dan.D2term.activity()
+            self.res['d1_act'][idr,ida,ide_d2l,ide_d2s,k] = self.d1n.DA_receptor.activity()
+            self.res['d2l_act'][idr,ida,ide_d2l,ide_d2s,k] = self.d2n.DA_receptor.activity()
+            self.res['d1_AC5'][idr,ida,ide_d2l,ide_d2s,k] = self.d1n.AC5()
+            self.res['d2l_AC5'][idr,ida,ide_d2l,ide_d2s,k] = self.d2n.AC5()
+            self.res['d1_cAMP'][idr,ida,ide_d2l,ide_d2s,k] = self.d1n.cAMP
+            self.res['d2l_cAMP'][idr,ida,ide_d2l,ide_d2s,k] = self.d2n.cAMP
+            
+
+    def single_update(self,drug_conc,fr_trial,k):
+        dt = self.dt
+        if  self.drug_type == 'D2_agonist' :
+            self.dan.update(dt,  nu_in= fr_trial[k],Conc = np.array([0, drug_conc])) 
+            self.d1n.updateNeuron(dt, [self.dan.Conc_DA_term])
+            self.d2n.updateNeuron(dt, [self.dan.Conc_DA_term,drug_conc]) 
+            
+        elif self.drug_type == 'D1_agonist':
+            self.dan.update(dt,  nu_in= fr_trial[k],Conc = np.array([0])) 
+            self.d1n.updateNeuron(dt, [self.dan.Conc_DA_term,drug_conc])
+            self.d2n.updateNeuron(dt, [self.dan.Conc_DA_term])    
+            
+    def initialize_results_dict(self):
+        nsim = self.n_conc
+        n_eff = self.n_eff
+        nsims_da = self.n_DA
+        n_steps = self.n_steps
+        if  self.drug_type == 'D2_agonist' :
+            res ={'da':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps,2)),
+                    'd2s_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps,2)),
+                    'd1_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2s_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_AC5':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_AC5':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_cAMP':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_cAMP':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps))}
+        elif self.drug_type == 'D1_agonist':
+            res ={'da':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps,2)),
+                    'd2l_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2s_occ':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2s_act':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_AC5':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_AC5':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd1_cAMP':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps)),
+                    'd2l_cAMP':np.zeros((nsim,nsims_da,n_eff,n_eff,n_steps))}   
+        self.res=res
+        return res
+
+def get_delta_fr(sp_mat,time_all,sec_base=25,dt=0.01):
+
+    idbase = np.arange(0,np.argwhere(time_all>=sec_base-dt)[0][0])
+    mub = np.nanmean(sp_mat[:,idbase])
+    posd =12-np.round(mub)
+    negd = np.round(mub)-1
+    delta_fr = np.linspace(-negd, posd,6)
+    fr_mats = np.zeros((len(delta_fr),len(idbase)))
+    for id in range(len(delta_fr)):
+        mat2 = np.nanmean(sp_mat,axis=0).copy()
+        mat2 = mat2 + delta_fr[id]
+        mat2[mat2<0]=0
+        mat2 = mat2[idbase]
+        fr_mats[id,:] = mat2
+    
+    return fr_mats,delta_fr
 
 def analyze_spikes_from_file(ToBeAnalyzed, DAsyst, dt = 0.01, synch = 'auto', pre_run = 0,
              tmax = None, process = True, adjust_t = False, verbose = False):
@@ -1102,7 +1451,6 @@ def analyze_spikes_from_file(ToBeAnalyzed, DAsyst, dt = 0.01, synch = 'auto', pr
     
     return Result, Results
 
-
 def udpate_results_dict(Results,simulation_results,max_samp,i):
     simulation_results['synch'][i] = Results['synch']
     simulation_results['mean_input_fr'][i] = Results['mean_input_firing_rate']
@@ -1163,6 +1511,7 @@ def initialize_variables_dict(max_samp,n_trials):
     return simulation_results
 
 def initialize_config_drugs():
+
     ec50_d1=1000
     ec50_d2=10
     drug_concv = 10**(np.linspace(-1.5,2,10)) 
@@ -1176,3 +1525,40 @@ def initialize_config_drugs():
     da_eta = np.linspace(1,2.5,20)
     
     return drug_concv, efficacies, ndrug, neffs, id_bins_base,da_sigmoid,rec_sigmoid,log_delta,ec50_d1,ec50_d2,da_eta
+
+
+def initialize_drug_classes(choose_drug='bromocriptine'):
+    # choose_drug ='bromocriptine' # 'bromocriptine' # pramiprexole A_77636
+    if choose_drug=='bromocriptine':
+        drug = SpecificDrugs(name='bromocriptine_dan')
+        drug_d2s = Drug( name = 'bromocriptine',
+                        target = drug.target, k_on =drug.k_on, 
+                        k_off =drug.k_off, efficacy =drug.efficacy)
+        drug= SpecificDrugs(name='bromocriptine_spn')
+        drug_d2l = Drug( name = 'bromocriptine',
+                        target = drug.target, k_on = drug.k_on, 
+                        k_off =drug.k_off, efficacy =drug.efficacy)
+        drug_type = 'D2_agonist'
+        drug_d1 = None
+    elif choose_drug=='pramiprexole':
+        drug = SpecificDrugs(name='pramiprexole_dan')
+        drug_d2s = Drug( name = 'pramiprexole',
+                        target = drug.target, k_on =drug.k_on, 
+                        k_off =drug.k_off, efficacy =drug.efficacy)
+        drug= SpecificDrugs(name='pramiprexole_spn')
+        drug_d2l = Drug( name = 'pramiprexole',
+                        target = drug.target, k_on =drug.k_on, 
+                        k_off =drug.k_off, efficacy =drug.efficacy)
+        drug_type = 'D2_agonist'
+        drug_d1 = None
+    elif choose_drug=='A_77636':
+        drug= SpecificDrugs(name='A_77636_spn')
+        drug_d1 = Drug( name = 'A_77636',
+                        target = drug.target, k_on =drug.k_on, 
+                        k_off =drug.k_off, efficacy =drug.efficacy)
+        drug_type = 'D1_agonist'
+        drug_d2s = None
+        drug_d2l = None
+
+    return drug, drug_d2s,drug_d2l,drug_d1,drug_type
+        

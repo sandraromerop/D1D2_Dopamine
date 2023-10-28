@@ -38,12 +38,15 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Figures from manuscript: 6 k-l
 
 - **`drugs_from_biophysical_simulations`**
-  - Plots the results from the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
+  - Performs the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
   - The simulations were done to reproduce the effects of bromocriptine on reversal learning in the study: **Cools, R., Frank M.J., Gibbs S., Miyakawa A., Jagust W. & D'Esposito M.  Striatal dopamine predicts outcome-specific reversal learning and its sensitivity to dopaminergic drug administration. J. Neurosci. 29, 1538–1543 (2009)**
+
+- **`plot_drugs_from_biophysical_simulations`**
+  - Plots the results from the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
+  
 
 
 # TODOS:
-- Code to produce drug manipulations
 - Check which extended data figures are missing
 - Numerate the notebooks to go in order 
 - How to share dependencies + install environment in external compuer 
