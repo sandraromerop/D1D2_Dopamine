@@ -70,12 +70,32 @@ This code reproduces the analysis and simulations for the main figures of the ma
 - `plots.py`: miscellaneous functions for plotting
 - `path.py`: path configuration for loading and saving data and analysis
 
+## Dependencies & enviro xnments
+
+To install the dependencies to run this code one can  take two routes:
+
+1. With pip: Navigate to the folder `/D1D2_dopamine` in the command line and execute:
+  ```
+  pip install -r requirements.txt
+  ```
+1. Create conda environment (recommended):  Navigate to the folder `/D1D2_dopamine` in the command line and execute:
+  ```
+  conda env create -f environment.yml
+  ```
+  - This will create a conda environment called **'Tonic_DA'**. To execute the code from the terminal, activate the conda environment
+  ```
+  conda activate Tonic_DA
+  ```
+
+  
 ## References
 
 **(1)** Romero Pinto, S., & Uchida, N. (2023). Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model (In preparation)
 
 
-**(2)** Tian, J., & Uchida, N. (2015). Habenula Lesions Reveal that Multiple Mechanisms Underlie Dopamine Prediction Errors. Neuron, 87(6), 1304–1316. https://doi.org/10.1016/j.neuron.2015.08.028
+**(2)** Tian, J., & Uchida, N. (2015). Habenula Lesions Reveal that Multiple Mechanisms Underlie Dopamine Prediction Errors. Neuron, 87(6), 1304–1316
 
 
 **(3)** Cools, R., Frank M.J., Gibbs S., Miyakawa A., Jagust W. & D'Esposito M.  Striatal dopamine predicts outcome-specific reversal learning and its sensitivity to dopaminergic drug administration. J. Neurosci. 29, 1538–1543 (2009)
+
+
