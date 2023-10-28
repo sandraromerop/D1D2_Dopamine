@@ -46,10 +46,9 @@ This code reproduces the analysis and simulations for the main figures of the ma
   
 
 
-# TODOS:
-- Check which extended data figures are missing
-- Numerate the notebooks to go in order 
-- How to share dependencies + install environment in external compuer 
+<!-- # TODOS: -->
+<!-- - Check which extended data figures are missing -->
+<!-- - Numerate the notebooks to go in order  -->
 
 ## Auxiliary functions: 
 
@@ -78,7 +77,7 @@ To install the dependencies to run this code one can  take two routes:
   ```
   pip install -r requirements.txt
   ```
-1. Create conda environment (recommended):  Navigate to the folder `/D1D2_dopamine` in the command line and execute:
+1. Create conda environment (**recommended**):  Navigate to the folder `/D1D2_dopamine` in the command line and execute:
   ```
   conda env create -f environment.yml
   ```
