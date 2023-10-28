@@ -1,6 +1,6 @@
 # D1D2_Dopamine
 
-This code reproduces the analysis and simulations for the main figures of the manuscript **'Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model'** by  Romero Pinto &  Uchida, 2023
+This code reproduces the analysis and simulations for the main figures of the manuscript **'Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model'** by  Romero Pinto &  Uchida, 2023 (1)
 
 ## Notebooks to reproduce the figures:
 
@@ -21,7 +21,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
   - Figures from manuscript: 4c
   
 - **`biophysical_simulations_from_data`**
-  - Performs the biophysical simulations of dopamine release and receptor occupancy, having as inputs the dopamine firing rates recorded in Tian & Uchida, 2015
+  - Performs the biophysical simulations of dopamine release and receptor occupancy, having as inputs the dopamine firing rates recorded in Tian & Uchida, 2015 (2)
   - These simulations are based on the  [codebase](https://github.com/jakobdreyer/Dopamine-Simulation-Tools) released by Jakob Dreyer.
   - *No plots*
 
@@ -39,7 +39,7 @@ This code reproduces the analysis and simulations for the main figures of the ma
 
 - **`drugs_from_biophysical_simulations`**
   - Performs the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
-  - The simulations were done to reproduce the effects of bromocriptine on reversal learning in the study: **Cools, R., Frank M.J., Gibbs S., Miyakawa A., Jagust W. & D'Esposito M.  Striatal dopamine predicts outcome-specific reversal learning and its sensitivity to dopaminergic drug administration. J. Neurosci. 29, 1538–1543 (2009)**
+  - The simulations were done to reproduce the effects of bromocriptine on reversal learning in the study from Cools et al, 2009 (3)
 
 - **`plot_drugs_from_biophysical_simulations`**
   - Plots the results from the biophysical simulations of dopamine release and receptor occupancy performed by adding an additional D2 receptor agonist (bromocriptine)
@@ -78,3 +78,4 @@ This code reproduces the analysis and simulations for the main figures of the ma
 **(2)** Tian, J., & Uchida, N. (2015). Habenula Lesions Reveal that Multiple Mechanisms Underlie Dopamine Prediction Errors. Neuron, 87(6), 1304–1316. https://doi.org/10.1016/j.neuron.2015.08.028
 
 
+**(3)** Cools, R., Frank M.J., Gibbs S., Miyakawa A., Jagust W. & D'Esposito M.  Striatal dopamine predicts outcome-specific reversal learning and its sensitivity to dopaminergic drug administration. J. Neurosci. 29, 1538–1543 (2009)
