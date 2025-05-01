@@ -10,6 +10,7 @@ from rl.agent import *
 from utils.stats_perform import *
 
 def plot_mean_per_trial_batch_iterations(agent,results_v,vars_n,id_states,save_titles,plot_titles,y_labels,cs_names,g_names,id_cs_plot,id_iter_plot,simulation_type,fig_dir,colors_g,evtype = 'tau'):
+    fig_v,ax_v = [],[]
     for iv in np.arange(len(vars_n)):
         var = vars_n[iv]
         id_state = id_states[iv]
@@ -17,16 +18,9 @@ def plot_mean_per_trial_batch_iterations(agent,results_v,vars_n,id_states,save_t
         y_title = y_labels[iv]
         save_tit = save_titles[iv]
         fig,ax = plot_var_full_normalized_iterations(agent,results_v,var,title_var,y_title,cs_names,g_names,id_state,id_iter_plot,id_cs_plot,simulation_type,save_tit,fig_dir,colors_g,evtype = evtype)
-
-# from scipy import
-def plot_mean_per_trial_batch_iterations(agent,results_v,vars_n,id_states,save_titles,plot_titles,y_labels,cs_names,g_names,id_cs_plot,id_iter_plot,simulation_type,fig_dir,colors_g,evtype = 'tau'):
-    for iv in np.arange(len(vars_n)):
-        var = vars_n[iv]
-        id_state = id_states[iv]
-        title_var = plot_titles[iv]
-        y_title = y_labels[iv]
-        save_tit = save_titles[iv]
-        fig,ax = plot_var_full_normalized_iterations(agent,results_v,var,title_var,y_title,cs_names,g_names,id_state,id_iter_plot,id_cs_plot,simulation_type,save_tit,fig_dir,colors_g,evtype = evtype)
+        fig_v.append(fig)
+        ax_v.append(ax)
+    return fig_v, ax_v
 
 def plot_var_full_normalized_iterations(agent,results_v,var,title_var,y_title,cs_names,g_names,id_state,id_iter_plot,id_cs_plot,simulation_type,save_tit,fig_dir,colors_g,evtype = 'tau'):
     fig,ax = plt.subplots(2,2,figsize = (10,10))
@@ -138,8 +132,7 @@ def get_mean_response_across_iterations(results_v,var,id_state,evtype):
     
     return cs_mu, cs_mu_n
 
-def plot_var_baseline_iterations(agent,results_v,var, y_title,g_names,id_state,id_iter_plot,
-                                 simulation_type,save_tit,fig_dir,evtype = 'tau'):
+def plot_var_baseline_iterations(agent,results_v,var, y_title,g_names,id_state,id_iter_plot,evtype = 'tau'):
     fig,ax = plt.subplots(figsize = (5,5))
     nb_cs = agent.task.nb_cs
     n_iterations_min = np.min([len(rr) for rr in results_v])
@@ -168,7 +161,6 @@ def plot_var_baseline_iterations(agent,results_v,var, y_title,g_names,id_state,i
         plot_config(ax,'',y_title,14,False)
         xticks_(ax,np.arange(len(g_names))+1,g_names)
 
-    # fig.savefig(os.path.join(fig_dir, save_tit + '_' + simulation_type + '.pdf'))
 
 
     return base_resp_g
