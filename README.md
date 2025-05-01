@@ -8,7 +8,27 @@ Before running the code, you should download the data. Please use the notebook *
    - *No plots*
 
 ## Notebooks to reproduce figure by figure 
-   - **`Figure_1`**,  **`Figure_2`** 
+   - **`Figure_1`** : Reinforcement learning models
+   - **`Figure_2`** : Biologically inspired reinforcement learning model
+   - **`Figure_3`** : Potential mechanisms for asymmetric learning.
+   - **`Figure_4`** : Habenula lesions leads to optimistic reward-seeking behavior and cue-evoked responses in dopamine neurons.
+   - **`Figure_5`** : Mechanism 2 cannot explain optimistic biases in behavior and cue-evoked dopamine responses of habenula lesioned animals
+   - **`Figure_6`** : Biophysical model based on firing rates of dopamine neurons predicts increases in dopamine concentration and receptor occupancies at baseline
+   - **`Figure_7`** : Mechanism 1 can account for optimistic biases in reward-seeking behavior and cue-evoked dopamine responses.
+   - **`Figure_8`** : Mechanism 1 predicts asymmetric learning rates in healthy humans given inter-individual differences in baseline dopamine.
+   - **`Figure_Supp_1`**: Variables of model with mechanism 1 show convergence irrespective of the value of the decay factor.  
+   - **`Figure_Supp_2`**: Rl model fits to the trial-by-trial anticipatory licking responses.
+   - **`Figure_Supp_3_and_4`**: 
+      - Signatures of distributional reinforcement learning model are preserved after habenula lesions 
+      - Distributional reinforcement learning variables from the habenula lesion dataset
+   - **`Figure_Supp_5`**: Cue-evoked responses in the habenula lesion data are only predicted by mechanisms 1 but not by mechanism 2
+   - **`Figure_Supp_6`**: Mechanism 1 and 2 play complementary roles in distributional td learning 
+   - **`Figure_Supp_7_and_8`**: 
+      - Mechanism 1 predicts asymmetric learning rates and the effect of bromocriptine in healthy humans given inter-individual differences in baseline dopamine 
+      - Robustness of the effect of bromocriptine in the relative reversal learning (rrl) to the choice of the drug efficiency parameter
+   - **`Figure_Supp_9`**: The qualitative aspects of mechanism 1 are preserved irrespective of the assumption made about the changes in baseline dopamine caused by dopamine transients.  
+   - **`Figure_Supp_10`**: Change in dopamine firing rates, dopamine concentration and receptor occupancy as a function of rpes in the linear scale or logarithmic scale.
+
 ## Notebooks to perform more in depth analysis 
 
 2. **`tonic_da_model`**
