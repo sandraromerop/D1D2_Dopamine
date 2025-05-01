@@ -1,6 +1,42 @@
 import numpy as np
 import scipy as sci
 import scipy.optimize as scio
+from random import sample
+import random
+from scipy import   stats
+
+
+seed_value = 0  # Or any integer you like
+np.random.seed(seed_value)
+random.seed(seed_value)
+
+def compute_slope(xx, yy):
+    id_keep = np.argwhere(~(np.isnan(xx) + np.isnan(yy)) == 1)[:, 0].flatten()
+    res = stats.siegelslopes(yy[id_keep], xx[id_keep])
+    return res
+
+
+def split_indices(per_cell):
+    n_cells, n_rew_mags, _ = per_cell.shape
+    half_zero_crossing = np.full(per_cell.shape, np.nan)
+
+    for i_cell in range(n_cells):
+        for i_rew_mag in range(n_rew_mags):
+            linInds = np.where(~np.isnan(per_cell[i_cell, i_rew_mag, :]))[0]
+            toUse = sample(list(linInds), len(linInds) // 2)
+            half_zero_crossing[i_cell, i_rew_mag, toUse] = 1
+
+    half_asymmetry = np.full(per_cell.shape, np.nan)
+    half_asymmetry[np.isnan(half_zero_crossing)] = 1
+    half_asymmetry = np.int0(half_asymmetry)
+    half_zero_crossing = np.int0(half_zero_crossing)
+
+    return half_asymmetry, half_zero_crossing
+
+
+def taufun(DA,ec1,ec2):
+    tau = 1/(1+(ec2/ec1)*((DA+ec1)**2/(DA+ec2)**2))
+    return tau
 
 
 def sigmoid(x, L ,x0, k, b):

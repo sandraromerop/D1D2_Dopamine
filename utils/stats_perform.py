@@ -4,6 +4,13 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
+
+def nanpearsonr(x,y):
+    id_keep = ~(np.isnan(x)+np.isnan(y))
+    r,p = stats.pearsonr(x[id_keep],y[id_keep])
+
+    return r,p
+
 def statistic_std(x, axis):
 
     return np.std(x, axis)

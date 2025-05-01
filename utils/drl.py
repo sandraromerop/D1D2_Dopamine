@@ -7,6 +7,14 @@ from turtle import end_fill
 from scipy import interpolate
 from rl.agent import *
 from sklearn.linear_model import LinearRegression
+import random
+
+import statsmodels.api as sm
+
+def compute_vi_closed_form(asym,p,r1,r2):
+    vi =  (((asym)/(1-asym)) * (p/(1-p))*r1 + r2)/ (((asym)/(1-asym)) * (p/(1-p)) + 1)
+    return vi
+
 
 
 def get_pos_neg_regime_variables(zcr_i,mu_da,mu_rec_d1,mu_rec_d2,truncate_reg=True):
@@ -30,7 +38,7 @@ def get_pos_neg_regime_variables(zcr_i,mu_da,mu_rec_d1,mu_rec_d2,truncate_reg=Tr
 
     return da_pos,da_neg,rec_pos,rec_neg
 
-def extract_metrics(m,utility_axis,rpes_x):
+def extract_metrics(m,utility_axis,rpes_x,discard_nan=True):
     taus_ = np.asarray([im[8] for im in m])
     alpha_pos = np.asarray([im[2] for im in m])
     alpha_neg = np.asarray([im[6] for im in m]) 
@@ -40,14 +48,15 @@ def extract_metrics(m,utility_axis,rpes_x):
     
     taus_[(taus_>1)+(taus_<0)]=np.nan
     i_disc = np.argwhere(np.isnan(taus_)).flatten()
-    zcross_util=zcross_util[~np.isnan(taus_)]
-    zcross_rpe=zcross_rpe[~np.isnan(taus_)]
-    alpha_neg=alpha_neg[~np.isnan(taus_)]
-    alpha_pos=alpha_pos[~np.isnan(taus_)]
-    taus_ = taus_[~np.isnan(taus_)]
+    if discard_nan:
+        zcross_util=zcross_util[~np.isnan(taus_)]
+        zcross_rpe=zcross_rpe[~np.isnan(taus_)]
+        alpha_neg=alpha_neg[~np.isnan(taus_)]
+        alpha_pos=alpha_pos[~np.isnan(taus_)]
+        taus_ = taus_[~np.isnan(taus_)]
 
     return taus_,alpha_pos,alpha_neg,zcross_util,zcross_rpe,i_disc
-
+# zcr = compute_zero_crossings(per_cell_i,utility_axis,1, method_zcross) 
 def compute_zero_crossings(per_cell_i, utility_axis_new,n_splits, method_zcross):
 
 
@@ -90,8 +99,8 @@ def compute_zero_crossings(per_cell_i, utility_axis_new,n_splits, method_zcross)
         zc = k[mcv]
         zero_crossings_y[iis]=zc
         if zc < 1:
-            zero_crossings[iis] = utility_axis_new[0] + 0.01;       
-        elif zc > n_types_int-1:
+            zero_crossings[iis] = utility_axis_new[0] + 0.1;       
+        elif zc > n_types_int:
             zero_crossings[iis] = utility_axis_new[-1] - 0.1;      
         else:
             w = np.abs(np.diff((critvals[mcv-1,iis] ,critvals[mcv,iis] ,critvals[mcv+1,iis])))
@@ -117,10 +126,11 @@ def compute_asymmetric_scaling(utility_axis_per_cell,per_cell_i,per_cell_norm):
     #     pospart[np.arange(switch_id[0],len(pospart))] = True
 
     # print([negpart,pospart])
-    if sum(np.multiply(negpart, 1))==1:
+    if sum(np.multiply(negpart, 1))==1 :
+    
         neg = np.multiply(negpart, 1)
         negpart[np.argwhere(neg==1).flatten()[-1]+1] = True
-    if sum(np.multiply(pospart, 1))==1:
+    if sum(np.multiply(pospart, 1))==1 :
         pos = np.multiply(pospart, 1)
         pospart[np.argwhere(pos==1).flatten()[0]-1] = True
 
@@ -143,17 +153,30 @@ def compute_asymmetric_scaling(utility_axis_per_cell,per_cell_i,per_cell_norm):
         
         if len(np.unique(xv))>1:
             # LinearRegression
-            X ,y = xv.reshape(-1, 1) ,yv.reshape(-1, 1)
-            coefficients, conf_int, p_val=linear_model(X,y)
-            scale_fact_neg_p = p_val
-            scale_fact_neg_SE = conf_int
-            scale_fact_neg =  coefficients[0][0]
-            # res = stats.linregress(xv,yv)
+            # X ,y = xv.reshape(-1, 1) ,yv.reshape(-1, 1)
+            # xNormN ,yNormN = xNormN.reshape(-1, 1) ,yNormN.reshape(-1, 1)
+            # Previous using linear regression
+            # coefficients, conf_int, p_val=linear_model(X,y)
+            # scale_fact_neg_p = p_val
+            # scale_fact_neg_SE = conf_int
+            # scale_fact_neg =   coefficients[0][0]
             res_norm = stats.linregress(xNormN.flatten(),yNormN.flatten())
-            # scale_fact_neg_p = res.pvalue
-            # scale_fact_neg_SE = res.stderr
-            # scale_fact_neg = res.slope
             scale_fact_neg_norm = res_norm.slope
+
+            # Testing with GLM fit 
+            mask = ~np.isnan(xv).any(axis=0) & ~np.isnan(yv) & ~np.isinf(xv).any(axis=0) & ~np.isinf(yv)
+            xv_clean = xv[mask]
+            yv_clean = yv[mask]
+            X_clean, Y_clean= xv_clean.reshape(-1, 1) ,yv_clean.reshape(-1, 1)
+            model = sm.GLM(Y_clean,X_clean, family=sm.families.Gaussian())
+
+            results = model.fit()
+            scale_fact_neg_p =  results.pvalues[0]
+            scale_fact_neg_SE =  results.bse[0] # Standard error
+            scale_fact_neg =  results.params[0]
+            
+            
+            
         else:
             scale_fact_neg_p = np.nan
             scale_fact_neg_SE = np.nan
@@ -186,18 +209,31 @@ def compute_asymmetric_scaling(utility_axis_per_cell,per_cell_i,per_cell_norm):
         
         # print(len(np.unique(xv)))
         if len(np.unique(xv))>1:
-            X ,y = xv.reshape(-1, 1) ,yv.reshape(-1, 1)
-            coefficients, conf_int, p_val=linear_model(X,y)
-            scale_fact_pos_p = p_val
-            scale_fact_pos_SE = conf_int
-            scale_fact_pos =  coefficients[0][0]
+            # X ,y = xv.reshape(-1, 1) ,yv.reshape(-1, 1)
+            # xNormP ,yNormP = xNormP.reshape(-1, 1) ,yNormP.reshape(-1, 1)
 
-            # res = stats.linregress(xv,yv)
+            # Previous using linear regression
+            # coefficients, conf_int, p_val=linear_model(X,y)
+            # scale_fact_pos_p = p_val
+            # scale_fact_pos_SE = conf_int
+            # scale_fact_pos =  coefficients[0][0]
             res_norm = stats.linregress(xNormP.flatten(),yNormP.flatten())
-            # scale_fact_pos_p = res.pvalue
-            # scale_fact_pos_SE = res.stderr
-            # scale_fact_pos = res.slope
             scale_fact_pos_norm = res_norm.slope
+
+            # Testing with GLM fit 
+            mask = ~np.isnan(xv).any(axis=0) & ~np.isnan(yv) & ~np.isinf(xv).any(axis=0) & ~np.isinf(yv)
+            xv_clean = xv[mask]
+            yv_clean = yv[mask]
+            X_clean, Y_clean= xv_clean.reshape(-1, 1) ,yv_clean.reshape(-1, 1)
+            
+            model = sm.GLM(Y_clean,X_clean, family=sm.families.Gaussian())
+
+            results = model.fit()
+            scale_fact_pos_p =  results.pvalues[0]
+            scale_fact_pos_SE =  results.bse[0] # Standard error
+            scale_fact_pos =  results.params[0]
+
+
         else:
             scale_fact_pos_p = np.nan
             scale_fact_pos_SE = np.nan
@@ -240,7 +276,8 @@ def compute_drl_metrics(per_cell_i,utility_axis,method_zcross):
     
     zcr = compute_zero_crossings(per_cell_i,utility_axis,1, method_zcross) 
     utility_axis_per_cell = utility_axis -zcr[0][0]
-    per_cell_norm = (per_cell_i - np.nanmin(per_cell_i))/(np.nanmax(per_cell_i)-np.nanmin(per_cell_i))
+    # per_cell_norm = (per_cell_i - np.nanmin(per_cell_i))/(np.nanmax(per_cell_i)-np.nanmin(per_cell_i))
+    per_cell_norm = (per_cell_i)/(np.nanmax(per_cell_i)-np.nanmin(per_cell_i))
     if sum(utility_axis_per_cell>0)>=1 and sum(utility_axis_per_cell<0)>=1:
         scale_fact_pos_p,scale_fact_pos_SE,scale_fact_pos, scale_fact_pos_norm,\
                     scale_fact_neg_p,scale_fact_neg_SE,scale_fact_neg, scale_fact_neg_norm,\

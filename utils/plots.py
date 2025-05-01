@@ -3,6 +3,16 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import os 
 
+def boxplot_colors(ia,var_list,color_list,position_list,width=.3):
+    _= [ia.boxplot(var_list[id_item],positions=[position_list[id_item]],\
+                    widths=width,patch_artist=True,\
+                    medianprops=dict(color="black", alpha=0.7),
+                        boxprops=dict(facecolor=color_list[id_item], color=color_list[id_item]), showfliers=False) \
+                            for id_item in range(len(var_list))]
+    
+    return ia
+    
+    
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')

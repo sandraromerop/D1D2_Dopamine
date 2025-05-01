@@ -11,6 +11,21 @@ import osfclient
 from osfclient.utils import makedirs, checksum
 
 #%%
+
+
+def filter_pd(d_,filter_x,filter_valx,filter_oper):
+    if isinstance(filter_x,str):
+        filter_x = [filter_x]
+        filter_valx=[filter_valx]
+    for (ifilt,ifiltval,ifiltoper) in zip(filter_x,filter_valx,filter_oper):
+        if ifiltoper=='higher':   
+            d_ = d_[d_[ifilt]>ifiltval]
+        elif ifiltoper=='lower':
+            d_ = d_[d_[ifilt]<ifiltval]
+        elif ifiltoper=='equal':
+            d_ = d_[d_[ifilt]==ifiltval]
+    return d_
+
 def clone_py(args, data_folder=None):
     """Copy  files from  storages of a project. 
     Function allows to specify the subfolder in the project to download
