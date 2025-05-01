@@ -1,6 +1,6 @@
 # D1D2_Dopamine
 
-This code reproduces the analysis and simulations for the main figures of the manuscript **'Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model'** by  Romero Pinto &  Uchida, 2023 (1)
+This code reproduces the analysis and simulations for the main figures of the manuscript _**'Tonic dopamine and biases in value learning linked through a biologically inspired reinforcement learning model'**_ by  Romero Pinto &  Uchida, 2023 (1)
 
 Before running the code, you should download the data. Please use the notebook **`download_data`**:
    - Downloads the data from the  [**Open Science Framework (OSF)**](https://osf.io/) repository. The repository can be viewed [here](https://osf.io/cr5mv/?view_only=bd13a2d2de1947699b56ce70610b0e9b).
